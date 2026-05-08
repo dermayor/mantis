@@ -145,6 +145,7 @@ int main(int argc, char **argv) {
         }
 
         rx_channel->receive(rx_buff, sample_size, sample_num, rx_md);
+        rx_md.has_time_spec = false; // reset timespec so we dont schedule the next recv to be in the past 
         file.write(rx_buff, sample_num);
     }
 }

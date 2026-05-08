@@ -134,6 +134,7 @@ def main():
                 break
 
             rx_channel.receive(buff, rx_md)
+            rx_md.has_time_spec = False # reset timespec so we dont schedule the next recv to be in the past
             f.write(mv_buff)
 
 if __name__ == "__main__":
