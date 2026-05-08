@@ -24,7 +24,7 @@ void bind_msdr_params(py::module_& m) {
         [](const std::string& args, const std::string& delimiter) {
             mantis::params::msdr_params p;
             auto err = mantis::params::msdr_params::from_str(args, p, delimiter);
-            return std::make_pair(err, p);
+            return py::make_tuple(err, p);
         },
         py::arg("args"), py::arg("delimiter") = ";");
 
