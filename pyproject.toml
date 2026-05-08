@@ -16,4 +16,4 @@ license = {text = "MIT"}
 stubPath = "python/stubs"
 
 [tool.setuptools.package-data]
-mantis = ["*.pyi", "py.typed"]
+mantis = ["python/stubs/mantis/*.pyi", "python/py.typed"]
