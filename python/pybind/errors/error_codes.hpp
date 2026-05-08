@@ -1,3 +1,5 @@
+#pragma once
+
 #include "mantis/mantis.h"
 #include <pybind11/pybind11.h>
 
@@ -33,6 +35,5 @@ void bind_errors(py::module_& m) {
         .value("TIMEOUT", mantis::errors::error_code::TIMEOUT)
         .value("INVALID_TIME_SOURCE", mantis::errors::error_code::INVALID_TIME_SOURCE);
 
-    
-    err.def_static("mantis_errno", &mantis::errors::mantis_errno);
+        err.def_static("mantis_errno", &mantis::errors::mantis_errno);
 }
