@@ -20,7 +20,7 @@ void bind_rx_metadata(py::module_& m) {
 
         // Time handling
         .def_readwrite("time_spec", &mantis::go::mrx_metadata::time_spec)
-        .def_readonly("has_time_spec", &mantis::go::mrx_metadata::has_time_spec)
+        .def_readwrite("has_time_spec", &mantis::go::mrx_metadata::has_time_spec)
         .def("set_time_spec", &mantis::go::mrx_metadata::set_time_spec, 
              py::arg("time_spec"),
              "Sets the desired RX start time.")

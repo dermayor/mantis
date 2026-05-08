@@ -296,6 +296,7 @@ int main(int argc, char** argv) {
             }
 
             rx_channel->receive(buff, sample_size, BUFF_SIZE / sample_size, rx_md);
+            rx_md.has_time_spec = false;  // otherwise we rx in the past
             file.write(buff, BUFF_SIZE);
         }
     }
