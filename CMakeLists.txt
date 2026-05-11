@@ -46,6 +46,8 @@ if(NOT NO_PYTHON)
         find_package(pybind11 CONFIG REQUIRED)
         message(STATUS "pybind11 found, enabling PyMantis")
         set(PyMantisEnabled TRUE)
+        add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-D__pymantis=TRUE>) # ifdef pymantis flag
+
 else()
     message(STATUS "NO_PYTHON option detected, skipping PyMantis setup")
 endif()
