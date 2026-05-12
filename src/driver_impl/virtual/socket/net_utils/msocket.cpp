@@ -154,6 +154,7 @@ mantis::errors::error_code mantis::net::msocket::recv(char* data, size_t size) {
         
         // TODO: may be better to put the accept() outside in the channel and 
         // just return an error here, also consider desired partial failure behaviour
+        // atm you just dont get the data, this 
         if (bytes_received < 0) {
             if (bytes_needed != size) {
                 perror("total recv failure");

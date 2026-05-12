@@ -137,15 +137,18 @@ def main():
             if not tx_channel.is_valid():
                 mu.perror("SDR healthcheck failed, channel is no longer valid. shutting down...")
                 break
+            bytes_read = 0
+            while repeat or reps:
+                reps -= 1    
 
-            bytes_read = f.readinto(mv_buff)
-            while bytes_read < TX_BUFF_SIZE:
+                while bytes_read := f.readinto(mv_buff):
+                    if not tx_channel.is_valid():
+                        mu.perror("SDR healthcheck failed, channel is no longer valid. shutting down...")
+                        return
+                    # tx_channel.send(buff[:bytes_read], tx_md) -- this is how it should be but rx virtual is a bit busted atm 
+                    tx_channel.send(buff, tx_md)
                 f.seek(0)
-                bytes_read += f.readinto(mv_buff[bytes_read:])
-            tx_channel.send(buff, tx_md)
 
-            if not repeat:
-                reps -= 1
 
 if __name__ == "__main__":
     main()
