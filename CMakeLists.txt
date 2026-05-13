@@ -134,7 +134,7 @@ if(PyMantisEnabled)
         install(FILES python/__init__.py python/py.typed DESTINATION mantis)
         return() # no need to continue cpp install on pip build 
     else()
-        install(TARGETS mantis_python DESTINATION "${Python3_SITEARCH}")
+        install(TARGETS mantis_python DESTINATION "${Python3_SITEARCH}/mantis")
         install(DIRECTORY python/stubs/mantis/ DESTINATION "${Python3_SITEARCH}/mantis" FILES_MATCHING PATTERN "*.pyi")
         install(FILES python/__init__.py python/py.typed DESTINATION "${Python3_SITEARCH}/mantis")
     endif()
