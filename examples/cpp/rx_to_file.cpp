@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
             ("args", po::value<std::string>(), "device args str")
             ("freq", po::value<double>()->default_value(100e6, "100e6"), "Rx freq [Hz], will default to 100MHz")
             ("lo", po::value<double>(), "lo offset freq [Hz] By default will allow SDR lib to choose most fitting lo")
-            ("rate", po::value<double>()->default_value(10e6, "10e6"), "Rx rate [Hz], will default to 10 MHz")
+            ("rate", po::value<double>()->default_value(10e6, "10e6"), "Rx rate [Sps], will default to 10 MSps")
             ("gain", po::value<double>()->default_value(0.0), "Rx gain")
             ("master_clock_rate,mcr", po::value<double>(),
              "master clock rate; can also be passed in args as master_clock_rate. This argument takes precedence")
@@ -145,6 +145,7 @@ int main(int argc, char **argv) {
         }
 
         rx_channel->receive(rx_buff, sample_size, sample_num, rx_md);
+        rx_md.has_time_spec = false; // reset timespec so we dont schedule the next recv to be in the past 
         file.write(rx_buff, sample_num);
     }
 }

@@ -12,6 +12,8 @@ namespace mantis::driver_impl::virtual_i {
     class virtual_tx_channel_socket : public virtual_channel<interfaces::i_tx_channel> {
        public:
         virtual_tx_channel_socket(const params::msdr_params& _params, const params::mchannel_params& _channel_params);
+        
+        ~virtual_tx_channel_socket() override = default;
 
         void send(const char *data, size_t sample_size, size_t num_samples,
                   go::mtx_metadata &tx_metadata) override;

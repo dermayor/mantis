@@ -7,3 +7,4 @@ ColumnLimit: 120
 PointerAlignment: Left
 SpaceBeforeParens: ControlStatements
 PenaltyBreakBeforeFirstCallParameter: 1
+NamespaceIndentation: All

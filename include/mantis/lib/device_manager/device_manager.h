@@ -104,14 +104,21 @@ namespace mantis {
                 const params::msdr_params &msdr_params, size_t channel_num);
 
         /**
-         * @brief return vector of params of devices connected to the machine
+         * @brief return vector of params of devices connected to the machine NOT managed by mantis
          * @param params parameters to search by
          */
         std::vector<params::msdr_params> find(params::msdr_params params);
 
+        /**
+         * @brief return vector of params of devices being managed by mantis
+         */
+        std::vector<params::msdr_params> get_connected();
+
+
         device_manager(device_manager &other) = delete;
 
         device_manager(device_manager &&other) = delete;
+
 
     private:
 

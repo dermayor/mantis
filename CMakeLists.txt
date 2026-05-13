@@ -40,6 +40,18 @@ find_package(Threads REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
 
+if(NOT NO_PYTHON)
+        find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+        set(PYBIND11_FINDPYTHON ON)
+        find_package(pybind11 CONFIG REQUIRED)
+        message(STATUS "pybind11 found, enabling PyMantis")
+        set(PyMantisEnabled TRUE)
+        add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-D__pymantis=TRUE>) # ifdef pymantis flag
+
+else()
+    message(STATUS "NO_PYTHON option detected, skipping PyMantis setup")
+endif()
+
 # supported driver list for perror messaging
 set(MANTIS_SUPPORTED_DRIVERS "UHD")
 
@@ -60,8 +72,9 @@ if (UHD_FOUND)
 
     FILE(GLOB_RECURSE MANTIS_UHD_SOURCE_FILES src/driver_impl/uhd/*.cpp) # add include uhd source files
     list(APPEND SOURCE_FILES ${MANTIS_UHD_SOURCE_FILES})
-
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/driver_impl/uhd DESTINATION include/mantis/driver_impl/) # install mantis uhd impl includes
+    if(NOT DEFINED SKBUILD)
+        install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/driver_impl/uhd DESTINATION include/mantis/driver_impl/) # install mantis uhd impl includes
+    endif()
 else ()
     message("Compiling without UHD support")
 endif ()
@@ -71,8 +84,9 @@ FILE(GLOB_RECURSE MANTIS_VIRTUAL_SOURCE_FILES src/driver_impl/virtual/*.cpp) # a
 list(APPEND SOURCE_FILES ${MANTIS_VIRTUAL_SOURCE_FILES})
 
 # install virtual msdr includes
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/driver_impl/virtual DESTINATION include/mantis/driver_impl/) # install mantis virtual impl includes
-
+if(NOT DEFINED SKBUILD)
+        install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/driver_impl/virtual DESTINATION include/mantis/driver_impl/) # install mantis virtual impl includes
+endif()
 
 # make sure we found at least one driver library
 if ("${MANTIS_DRIVER_LIBS}" STREQUAL "")
@@ -87,7 +101,11 @@ configure_file(cmake_templates/build_info.h.in ${CMAKE_CURRENT_SOURCE_DIR}/inclu
 #####################################################################################
 
 # main library
-add_library(mantis SHARED ${SOURCE_FILES})
+if(DEFINED SKBUILD) # need static linking for pip install
+        add_library(mantis STATIC ${SOURCE_FILES})
+else()
+        add_library(mantis SHARED ${SOURCE_FILES})
+endif()
 
 # link libs
 target_link_libraries(mantis PUBLIC Threads::Threads nlohmann_json::nlohmann_json Boost::program_options ${MANTIS_DRIVER_LIBS})
@@ -100,6 +118,27 @@ target_include_directories(mantis PUBLIC
 
 # version
 set_target_properties(mantis PROPERTIES VERSION ${PROJECT_VERSION})
+
+#####################################################################################
+##                                   PyMantis                                      ##
+#####################################################################################
+
+if(PyMantisEnabled)
+        pybind11_add_module(mantis_python python/pymantis.cpp)
+        target_link_libraries(mantis_python PRIVATE mantis)
+        set_target_properties(mantis_python PROPERTIES OUTPUT_NAME mantis)
+    if(DEFINED SKBUILD)
+        set_target_properties(mantis_python PROPERTIES INSTALL_RPATH "$ORIGIN")
+        install(TARGETS mantis_python DESTINATION mantis)
+        install(DIRECTORY python/stubs/mantis/ DESTINATION mantis FILES_MATCHING PATTERN "*.pyi")
+        install(FILES python/__init__.py python/py.typed DESTINATION mantis)
+        return() # no need to continue cpp install on pip build 
+    else()
+        install(TARGETS mantis_python DESTINATION "${Python3_SITEARCH}/mantis")
+        install(DIRECTORY python/stubs/mantis/ DESTINATION "${Python3_SITEARCH}/mantis" FILES_MATCHING PATTERN "*.pyi")
+        install(FILES python/__init__.py python/py.typed DESTINATION "${Python3_SITEARCH}/mantis")
+    endif()
+endif()
 
 #####################################################################################
 ##                               library installation                              ##

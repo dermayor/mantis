@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
          "repetitions");
     opts("freq", po::value<double>(&freq)->default_value(100e6, "100e6"), "Freq [Hz], will default to 100MHz");
     opts("lo", po::value<double>(), "lo offset freq [Hz] Will allow SDR lib to choose most fitting lo if not passed");
-    opts("rate", po::value<double>(&rate)->default_value(10e6, "10e6"), "Rate [Hz], will default to 10 MHz");
+    opts("rate", po::value<double>(&rate)->default_value(10e6, "10e6"), "Rate [Sps], will default to 10 MSps");
     opts("gain", po::value<double>(&gain)->default_value(0.0, "0.0"), "Gain [dB], will default to 0 dB");
     opts("master_clock_rate,mcr", po::value<double>(&mcr),
          "master clock rate; can also be passed in args as master_clock_rate. This argument takes precedence");
@@ -296,6 +296,7 @@ int main(int argc, char** argv) {
             }
 
             rx_channel->receive(buff, sample_size, BUFF_SIZE / sample_size, rx_md);
+            rx_md.has_time_spec = false;  // otherwise we rx in the past
             file.write(buff, BUFF_SIZE);
         }
     }
