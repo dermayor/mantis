@@ -304,7 +304,7 @@ void mantis::device_manager::configure() {
     config_file = (config_file == nullptr) ? MANTIS_DEFAULT_CONFIG_FILE_PATH : config_file;
     std::ifstream mantis_config_json(config_file);
     if (!mantis_config_json.is_open()) {
-        throw std::runtime_error(std::string("Unable to open Json: ") + config_file);
+        throw std::runtime_error(std::string("Unable to open Json: ") + config_file + " set MANTIS_CONFIG_FILE env var for custom location");
     }
     nlohmann::json data = nlohmann::json::parse(mantis_config_json);
 
