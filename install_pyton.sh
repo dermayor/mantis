@@ -32,10 +32,14 @@ $SUDO apt-get install -y libboost-program-options-dev
 
 echo "Installing mantis..."
 git clone https://github.com/dermayor/mantis.git
-cd mantis && mkdir -p build && cd build && cmake .. && $SUDO make -j $(nproc) install
+cd mantis && pip install .
+
+echo "Setting up config file..."
+mkdir -p $HOME/.config/mantis
+cp mantis-config.json $HOME/.config/mantis
 
 echo "Cleaning up..."
-cd ../.. && rm -rf mantis
+rm -rf mantis
 
 $SUDO ldconfig
 
