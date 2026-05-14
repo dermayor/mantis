@@ -2,11 +2,16 @@
 
 SDR Driver Abstraction Library
 
-## Library Install Instructions:
+## Library Install Instructions
+
 ### Ubuntu
-run the terminal command 
-```bash 
-curl -fsSL https://raw.githubusercontent.com/MayorDermer/mantis/refs/heads/main/install.sh | bash
+
+For full install (c++ and python) run the terminal command
+
+```bash
+
+curl -fsSL https://raw.githubusercontent.com/MayorDermer/mantis/refs/heads/main/scripts/install.sh | bash
+
 ```
 
 ## Steps for adding support for another driver
@@ -39,12 +44,12 @@ curl -fsSL https://raw.githubusercontent.com/MayorDermer/mantis/refs/heads/main/
 - Virtual sdrs operate in 2 modes: file and socket. It is important to note that file always overrides, so if you input
   both a file path and a network host the channel will default to file mode
 - File Behavior:
-    - Tx: Will open file (params.virtual_msdr_params.filename (or BASE_FILENAME_tx_channel_<channel_num>_init_<
+  - Tx: Will open file (params.virtual_msdr_params.filename (or BASE_FILENAME_tx_channel_<channel_num>_init_<
       curr_sdr_init>.FILE_EXTENSION
-    - Rx: Will open file (params.virtual_msdr_params.filename (or BASE_FILENAME_rx_channel_<channel_num>_init_<
+  - Rx: Will open file (params.virtual_msdr_params.filename (or BASE_FILENAME_rx_channel_<channel_num>_init_<
       curr_sdr_init>.FILE_EXTENSION. It is important that this file exists BEFORE the system starts up
 - Socket Behavior:
-    - Tx/Rx: will open a socket of type SOCKET_MODE and attempt to bind/connect *AT CHANNEL CONSTRUCTION TIME* on DEFAULT_VIRTUAL_HOST at port DEFAULT_VIRTUAL_PORT++, these can be overridden with the params.socket_params fields before channel creation  
+  - Tx/Rx: will open a socket of type SOCKET_MODE and attempt to bind/connect _AT CHANNEL CONSTRUCTION TIME_ on DEFAULT_VIRTUAL_HOST at port DEFAULT_VIRTUAL_PORT++, these can be overridden with the params.socket_params fields before channel creation  
 
 ## Installed Binaries
 
@@ -62,7 +67,7 @@ Additional information and arguments can be found by using the --help flag after
 Mantis has a JSON config file, mantis-config.json which installs to /usr/local/share/mantis/
 Users may define a different config file path with the MANTIS_CONFIG_FILE env var
 
-### Options:
+### Options
 
 - ALLOW_VIRTUAL (bool): allow use of virtual msdrs
 - FORCE_VIRTUAL (bool): force the use of virtual msdrs even when physical sdrs are attached
@@ -103,8 +108,8 @@ each sdr json may contain:
 - FPGA
 
 - 2 arrays of channels
-    - TX_CHANNELS
-    - RX_CHANNELS
+  - TX_CHANNELS
+  - RX_CHANNELS
 
 Each channel may contain:
 
@@ -112,3 +117,4 @@ Each channel may contain:
 - FILENAME (str): full filename to use
 - HOST (str, ip -- i.e. "0.0.0.0"): channel host (if in socket mode)
 - PORT (int): channel port (if in socket mode)
+

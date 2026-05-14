@@ -202,6 +202,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/MantisConfig.cmake DESTINATION lib/cma
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/MantisConfigVersion.cmake DESTINATION lib/cmake/mantis)
 
 # install config json
-install(FILES ${PROJECT_SOURCE_DIR}/mantis-config.json DESTINATION share/mantis/)
+install(FILES ${PROJECT_SOURCE_DIR}/mantis-config.json DESTINATION $ENV{HOME}/.config/mantis)
 
 install(CODE "message(\"Mantis v${PROJECT_VERSION} successfully installed.\nPlease run 'sudo ldconfig' to update the library cache.\")")
+
