@@ -10,8 +10,7 @@ For full install (c++ and python) run the terminal command
 
 ```bash
 
-curl -fsSL https://raw.githubusercontent.com/MayorDermer/mantis/refs/heads/\
-main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/MayorDermer/mantis/refs/heads/main/scripts/install.sh | bash
 
 ```
 
