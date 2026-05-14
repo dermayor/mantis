@@ -2,9 +2,19 @@
 set -x
 set -e
 
+# Use sudo only if not root
+if [ "$(id -u)" -eq 0 ]; then
+  SUDO=""
+else
+  SUDO="sudo"
+fi
+
 echo "Installing mantis..."
 git clone https://github.com/dermayor/mantis.git
-cd mantis && ./scripts/install_deps.sh
+cd mantis
+
+$SUDO chmod +x ./scripts/install_deps.sh
+$SUDO ./install_deps.sh
 
 mkdir -p build && cd build && cmake .. && $SUDO make -j $(nproc) install
 
