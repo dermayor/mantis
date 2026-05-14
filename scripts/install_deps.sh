@@ -29,14 +29,3 @@ $SUDO apt-get install -y python3-pybind11 pybind11-dev
 # boos po
 pdep "boost program options"
 $SUDO apt-get install -y libboost-program-options-dev
-
-echo "Installing mantis..."
-git clone https://github.com/dermayor/mantis.git
-cd mantis && mkdir -p build && cd build && cmake .. && $SUDO make -j $(nproc) install
-
-echo "Cleaning up..."
-cd ../.. && rm -rf mantis
-
-$SUDO ldconfig
-
-echo "Mantis installation complete"
