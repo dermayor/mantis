@@ -10,9 +10,6 @@
 // only allow client code to link to things that are part of the mantis api
 #define MANTIS_API __attribute__((visibility("default")))
 
-// default config file path
-#define MANTIS_DEFAULT_CONFIG_FILE_PATH "/usr/local/share/mantis/mantis-config.json"
-
 /* add default vals */
 #define MANTIS_CONFIG_VARS \
     CONFIG_VAR(ALLOW_VIRTUAL, bool, false) \

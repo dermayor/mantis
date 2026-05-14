@@ -300,8 +300,17 @@ std::vector<mantis::params::msdr_params> mantis::device_manager::get_connected()
 }
 
 void mantis::device_manager::configure() {
-    const char* config_file = std::getenv("MANTIS_CONFIG_FILE");
-    config_file = (config_file == nullptr) ? MANTIS_DEFAULT_CONFIG_FILE_PATH : config_file;
+    const char* config_file_raw = std::getenv("MANTIS_CONFIG_FILE");
+    if (config_file_raw == nullptr) {
+        config_file_raw = std::getenv("HOME"); 
+    }
+
+    if (config_file_raw == nullptr) {
+      throw mantis::runtime_error("failes to parse env vars MANTIS_CONFIG_FILE and HOME, cannot search for cofig file");
+    }
+
+    const std::string config_file = std::string(config_file_raw) + "/.config/mantis/mantis-config.json";
+
     std::ifstream mantis_config_json(config_file);
     if (!mantis_config_json.is_open()) {
         throw std::runtime_error(std::string("Unable to open Json: ") + config_file + ", set MANTIS_CONFIG_FILE env var for custom location");
