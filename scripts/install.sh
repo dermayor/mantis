@@ -14,7 +14,7 @@ git clone https://github.com/dermayor/mantis.git
 cd mantis
 
 $SUDO chmod +x ./scripts/install_deps.sh
-$SUDO ./install_deps.sh
+$SUDO ./scripts/install_deps.sh
 
 mkdir -p build && cd build && cmake .. && $SUDO make -j $(nproc) install
 
