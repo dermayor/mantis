@@ -53,14 +53,14 @@ curl -fsSL https://raw.githubusercontent.com/MayorDermer/mantis/refs/heads/main/
 
 ## Installed Binaries
 
-Mantis installs the following binaries for your convenience:
+A full library install will install the "mantis" binary for your convenience.
 
-- mantis_find_devices: finds and displays info about all connected devices
-- mantis_rx_to_file: receives to a file
-- mantis_tx_from_file: transmits file data
-- mantis_cw_tx: transmits a cw
+Functionality includes finding devices, tx/rx from/to a file, and transmitting a cw
+run mantis --help for more details.
 
-Additional information and arguments can be found by using the --help flag after the relevant binary.
+## Examples
+
+Examples in both c++ and python can be found in the examples dir
 
 ## Config File
 
@@ -117,4 +117,3 @@ Each channel may contain:
 - FILENAME (str): full filename to use
 - HOST (str, ip -- i.e. "0.0.0.0"): channel host (if in socket mode)
 - PORT (int): channel port (if in socket mode)
-
