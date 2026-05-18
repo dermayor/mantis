@@ -7,11 +7,13 @@
 
 namespace po = boost::program_options;
 
+static std::string program_description = "Find all connected devices matching arguments.";
+
 int main(int argc, char **argv) {
-    po::options_description desc("Options");
+    po::options_description desc(program_description + "\nOptions");
     desc.add_options()
             ("help,h", "produce help message")
-            ("args", po::value<std::string>(), "device args str");
+            ("args", po::value<std::string>(), "device args str. Leave empty to find all");
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -23,7 +25,8 @@ int main(int argc, char **argv) {
 
     po::notify(vm);
 
-    mantis::utils::pinfo("Mantis Find Devices; Mantis_" MANTIS_VERSION);
+    mantis::utils::pversion();
+    
     auto &d_manager = mantis::device_manager::get_instance();
 
     mantis::params::msdr_params params{};

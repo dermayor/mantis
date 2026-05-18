@@ -1,0 +1,3 @@
+#pragma once
+
+#define MANTIS_ACTIVE_DRIVERS "@MANTIS_DRIVER_LIBS@"

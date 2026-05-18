@@ -1,30 +1,26 @@
-//
-// Created by Jon Kler on 6/10/25.
-//
-
 #include <mantis/mantis.h>
 #include <fstream>
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
 
-static constexpr double RX_BUFF_SIZE = 1e5;
+static constexpr double TX_BUFF_SIZE = 16e5; // should be divisible by both 8 and 16
 static constexpr double threshold = 1e-6;
-static constexpr size_t INDICATOR_SLEEP_TIME = 3;
+static constexpr size_t INDICATOR_SLEEP_TIME = 5;
 
 #define PASSES_THRESHOLD(a, b) (std::abs(a - b) < threshold)
 
+static std::string program_description = "Transmit CW at specified parameters.";
+
 int main(int argc, char **argv) {
-    po::options_description desc("Options");
+    po::options_description desc(program_description + "\nOptions");
     desc.add_options()
             ("help,h", "produce help message")
-            ("filename", po::value<std::string>()->required(),
-             "REQUIRED. Full path of the file to write to. Opens in overwrite mode")
             ("args", po::value<std::string>(), "device args str")
-            ("freq", po::value<double>()->default_value(100e6, "100e6"), "Rx freq [Hz], will default to 100MHz")
+            ("freq", po::value<double>()->default_value(100e6, "100e6"), "Tx freq [Hz], will default to 100MHz")
             ("lo", po::value<double>(), "lo offset freq [Hz] By default will allow SDR lib to choose most fitting lo")
-            ("rate", po::value<double>()->default_value(10e6, "10e6"), "Rx rate [Hz], will default to 10 MHz")
-            ("gain", po::value<double>()->default_value(0.0), "Rx gain")
+            ("rate", po::value<double>()->default_value(10e6, "10e6"), "Tx rate [Sps], will default to 10 MSps")
+            ("gain", po::value<double>()->default_value(0.0), "Tx gain")
             ("master_clock_rate,mcr", po::value<double>(),
              "master clock rate; can also be passed in args as master_clock_rate. This argument takes precedence")
             ("channel", po::value<size_t>()->default_value(0), "channel num");
@@ -39,13 +35,7 @@ int main(int argc, char **argv) {
 
     po::notify(vm);
 
-
-    /// first, try to open file
-    std::ofstream file(vm["filename"].as<std::string>(), std::ios::out | std::ios::binary);
-    if (!file.is_open()) {
-        mantis::utils::perror("Failed to open file: " + vm["filename"].as<std::string>());
-        return EXIT_FAILURE;
-    }
+    mantis::utils::pversion();
 
     auto &d_manager = mantis::device_manager::get_instance();
 
@@ -73,34 +63,28 @@ int main(int argc, char **argv) {
     size_t channel = vm["channel"].as<size_t>();
 
     /// try to acquire channel
-    auto [err, rx_channel] = d_manager.get_rx_channel(params, channel);
+    auto [err, tx_channel] = d_manager.get_tx_channel(params, channel);
     if (!mantis::errors::succeeded(err)) {
         mantis::utils::perror("Failed to Acquire Channel: " + mantis::errors::mantis_errno(err));
     }
 
     /// configure channel
-    double ac_freq = rx_channel->set_freq(freq, lo);
+    double ac_freq = tx_channel->set_freq(freq, lo);
     if (!PASSES_THRESHOLD(ac_freq, freq)) {
         mantis::utils::pwarn(
             "Couldn't set freq to: " + std::to_string(freq) + ". Actual freq: " + std::to_string(ac_freq) + " Hz");
     }
 
-    double ac_gain = rx_channel->set_gain(gain);
+    double ac_gain = tx_channel->set_gain(gain);
     if (!PASSES_THRESHOLD(ac_gain, gain)) {
         mantis::utils::pwarn(
             "Couldn't set gain to: " + std::to_string(gain) + ". Actual gain: " + std::to_string(ac_gain) + " dB");
     }
 
-    double ac_rate = rx_channel->set_rate(rate);
+    double ac_rate = tx_channel->set_rate(rate);
     if (!PASSES_THRESHOLD(ac_rate, rate)) {
         mantis::utils::pwarn(
-            "Couldn't set rate to: " + std::to_string(rate) + ". Actual rate: " + std::to_string(ac_rate) + " Hz");
-    }
-
-    char *rx_buff = (char *) malloc(RX_BUFF_SIZE * sizeof(char));
-    if (!rx_buff) {
-        mantis::utils::perror("Failed to malloc Rx buffer");
-        return EXIT_FAILURE;
+            "Couldn't set rate to: " + std::to_string(rate) + ". Actual rate: " + std::to_string(ac_rate) + " Sps");
     }
 
     int sample_size;
@@ -116,14 +100,29 @@ int main(int argc, char **argv) {
     }
     (void) sample_size;
 
-    mantis::go::mrx_metadata rx_md{.start_of_burst = true};
 
-    mantis::utils::pinfo("++++++Begin RX+++++");
-    mantis::utils::pinfo("Quit to stop");
+    char *tx_buff = (char *) malloc(TX_BUFF_SIZE * sizeof(char));
+    if (!tx_buff) {
+        mantis::utils::perror("Failed to malloc Tx buffer");
+        return EXIT_FAILURE;
+    }
 
-    size_t sample_num = RX_BUFF_SIZE / sample_size;
+    // gen samples
+    if (sample_size == 8) {
+        auto data_ptr = reinterpret_cast<std::complex<float> *>(tx_buff);
+        static std::complex<float> sample = {1, 0};
+        for (int i = 0; i < TX_BUFF_SIZE / sample_size; i++) {
+            data_ptr[i] = sample;
+        }
+    } else {
+        auto *data_ptr = reinterpret_cast<std::complex<double> *>(tx_buff);
+        static std::complex<double> sample = {1, 0};
+        for (int i = 0; i < TX_BUFF_SIZE / sample_size; i++) {
+            // gotta love strong typing
+            data_ptr[i] = sample;
+        }
+    }
 
-    // dispatch thread to indicate rx
     bool running = true;
     auto indicator = std::thread([&running]() {
         while (running) {
@@ -132,15 +131,16 @@ int main(int argc, char **argv) {
         }
     });
 
+    mantis::go::mtx_metadata tx_md{.start_of_burst = true, .end_of_burst = false};
+
+    mantis::utils::pinfo("++++++Begin TX+++++");
     while (true) {
-        if (!rx_channel->is_valid()) [[unlikely]] {
+        if (!tx_channel->is_valid()) [[unlikely]] {
             mantis::utils::perror("SDR healthcheck Failed, channel invalid. Shutting Down...");
             running = false;
             indicator.join();
             return EXIT_FAILURE;
         }
-
-        rx_channel->receive(rx_buff, sample_size, sample_num, rx_md);
-        file.write(rx_buff, sample_num);
+        tx_channel->send(tx_buff, sample_size, TX_BUFF_SIZE / sample_size, tx_md);
     }
 }

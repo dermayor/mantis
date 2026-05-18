@@ -1,7 +1,0 @@
-#pragma once
-
-#define MANTIS_VERSION_MAJOR 0
-#define MANTIS_VERSION_MINOR 0
-#define MANTIS_VERSION_PATCH 2
-
-#define MANTIS_VERSION "0.0.2"

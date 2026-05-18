@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 # declare project
-Project(mantis VERSION 0.0.2)
+Project(mantis VERSION 0.0.3)
 
-# generate version config
+# generate version config an supported drivers list
 configure_file(cmake_templates/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/version.h)
 
 # CXX standard
@@ -40,6 +40,18 @@ find_package(Threads REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
 
+if(NOT NO_PYTHON)
+        find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+        set(PYBIND11_FINDPYTHON ON)
+        find_package(pybind11 CONFIG REQUIRED)
+        message(STATUS "pybind11 found, enabling PyMantis")
+        set(PyMantisEnabled TRUE)
+        add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-D__pymantis=TRUE>) # ifdef pymantis flag
+
+else()
+    message(STATUS "NO_PYTHON option detected, skipping PyMantis setup")
+endif()
+
 # supported driver list for perror messaging
 set(MANTIS_SUPPORTED_DRIVERS "UHD")
 
@@ -50,6 +62,7 @@ list(APPEND SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/config.cpp)
 #####################################################################################
 ##                                  relevant drivers                               ##
 #####################################################################################
+
 # uhd
 find_package(UHD)
 if (UHD_FOUND)
@@ -59,8 +72,9 @@ if (UHD_FOUND)
 
     FILE(GLOB_RECURSE MANTIS_UHD_SOURCE_FILES src/driver_impl/uhd/*.cpp) # add include uhd source files
     list(APPEND SOURCE_FILES ${MANTIS_UHD_SOURCE_FILES})
-
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/driver_impl/uhd DESTINATION include/mantis/driver_impl/) # install mantis uhd impl includes
+    if(NOT DEFINED SKBUILD)
+        install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/driver_impl/uhd DESTINATION include/mantis/driver_impl/) # install mantis uhd impl includes
+    endif()
 else ()
     message("Compiling without UHD support")
 endif ()
@@ -70,18 +84,30 @@ FILE(GLOB_RECURSE MANTIS_VIRTUAL_SOURCE_FILES src/driver_impl/virtual/*.cpp) # a
 list(APPEND SOURCE_FILES ${MANTIS_VIRTUAL_SOURCE_FILES})
 
 # install virtual msdr includes
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/driver_impl/virtual DESTINATION include/mantis/driver_impl/) # install mantis virtual impl includes
-
+if(NOT DEFINED SKBUILD)
+        install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/driver_impl/virtual DESTINATION include/mantis/driver_impl/) # install mantis virtual impl includes
+endif()
 
 # make sure we found at least one driver library
-if (MANTIS_DRIVER_LIBS STREQUAL "")
-    message(FATAL_ERROR "[FATAL ERROR] No supported drivers found. Supported drivers are: ${MANTIS_SUPPORTED_DRIVERS}")
+if ("${MANTIS_DRIVER_LIBS}" STREQUAL "")
+    message(WARNING "[Warning] No supported drivers found.\nSupported drivers are: ${MANTIS_SUPPORTED_DRIVERS}\nCompiling with virtual functionality only")
 endif ()
+
+# generate build_info file
+configure_file(cmake_templates/build_info.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/build_info.h)
 
 #####################################################################################
 ##                                   main library                                  ##
 #####################################################################################
-add_library(mantis SHARED ${SOURCE_FILES}) # link threads here?
+
+# main library
+if(DEFINED SKBUILD) # need static linking for pip install
+        add_library(mantis STATIC ${SOURCE_FILES})
+else()
+        add_library(mantis SHARED ${SOURCE_FILES})
+endif()
+
+# link libs
 target_link_libraries(mantis PUBLIC Threads::Threads nlohmann_json::nlohmann_json Boost::program_options ${MANTIS_DRIVER_LIBS})
 
 # include dirs
@@ -90,7 +116,29 @@ target_include_directories(mantis PUBLIC
         $<INSTALL_INTERFACE:include>
 )
 
+# version
 set_target_properties(mantis PROPERTIES VERSION ${PROJECT_VERSION})
+
+#####################################################################################
+##                                   PyMantis                                      ##
+#####################################################################################
+
+if(PyMantisEnabled)
+        pybind11_add_module(mantis_python python/pymantis.cpp)
+        target_link_libraries(mantis_python PRIVATE mantis)
+        set_target_properties(mantis_python PROPERTIES OUTPUT_NAME mantis)
+    if(DEFINED SKBUILD)
+        set_target_properties(mantis_python PROPERTIES INSTALL_RPATH "$ORIGIN")
+        install(TARGETS mantis_python DESTINATION mantis)
+        install(DIRECTORY python/stubs/mantis/ DESTINATION mantis FILES_MATCHING PATTERN "*.pyi")
+        install(FILES python/__init__.py python/py.typed DESTINATION mantis)
+        return() # no need to continue cpp install on pip build 
+    else()
+        install(TARGETS mantis_python DESTINATION "${Python3_SITEARCH}/mantis")
+        install(DIRECTORY python/stubs/mantis/ DESTINATION "${Python3_SITEARCH}/mantis" FILES_MATCHING PATTERN "*.pyi")
+        install(FILES python/__init__.py python/py.typed DESTINATION "${Python3_SITEARCH}/mantis")
+    endif()
+endif()
 
 #####################################################################################
 ##                               library installation                              ##
@@ -99,59 +147,36 @@ set_target_properties(mantis PROPERTIES VERSION ${PROJECT_VERSION})
 # additional mantis files
 file(GLOB OTHER_MANTIS_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/*.h ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/*.hpp)
 
+include(GNUInstallDirs)
+
 #install include dir
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/lib DESTINATION include/mantis/)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/lib DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/mantis)
 
-
-install(FILES ${OTHER_MANTIS_INCLUDES} DESTINATION include/mantis/)
-
+install(FILES ${OTHER_MANTIS_INCLUDES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/mantis)
 
 install(TARGETS mantis
         EXPORT MantisTargets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION lib
-        INCLUDES DESTINATION include
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 install(EXPORT MantisTargets
         FILE MantisTargets.cmake
         NAMESPACE mantis::
-        DESTINATION lib/cmake/mantis
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/mantis
 )
 
 #####################################################################################
 ##                                   executables                                   ##
 #####################################################################################
 
-# dev-executable
-if (DEV)
-    add_executable(mantis-exec ${PROJECT_SOURCE_DIR}/main.cpp)
-    target_link_libraries(mantis-exec PRIVATE mantis)
-endif ()
-
-# mantis example utils
-FILE(GLOB_RECURSE MANTIS_BINARIES_ADDITIONAL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/examples/utilities/*.cpp)
-
-# init-devices
-add_executable(mantis_find_devices ${CMAKE_CURRENT_SOURCE_DIR}/examples/mantis_find_devices.cpp ${MANTIS_BINARIES_ADDITIONAL_SOURCES})
-target_link_libraries(mantis_find_devices PRIVATE mantis)
-list(APPEND MANTIS_BINARY_TARGETS mantis_find_devices)
-
-# tx-from-file
-add_executable(mantis_tx_from_file ${CMAKE_CURRENT_SOURCE_DIR}/examples/mantis_tx_from_file.cpp ${MANTIS_BINARIES_ADDITIONAL_SOURCES})
-target_link_libraries(mantis_tx_from_file PRIVATE mantis)
-list(APPEND MANTIS_BINARY_TARGETS mantis_tx_from_file)
-
-# rx-to-file
-add_executable(mantis_rx_to_file ${CMAKE_CURRENT_SOURCE_DIR}/examples/mantis_rx_to_file.cpp ${MANTIS_BINARIES_ADDITIONAL_SOURCES})
-target_link_libraries(mantis_rx_to_file PRIVATE mantis)
-list(APPEND MANTIS_BINARY_TARGETS mantis_rx_to_file)
-
-# cw_tx
-add_executable(mantis_cw_tx ${CMAKE_CURRENT_SOURCE_DIR}/examples/mantis_cw_tx.cpp ${MANTIS_BINARIES_ADDITIONAL_SOURCES})
-target_link_libraries(mantis_cw_tx PRIVATE mantis)
-list(APPEND MANTIS_BINARY_TARGETS mantis_cw_tx)
+# mantis
+add_executable(mantis_bin ${CMAKE_CURRENT_SOURCE_DIR}/src/mantis.cpp ${MANTIS_BINARIES_ADDITIONAL_SOURCES})
+target_link_libraries(mantis_bin PRIVATE mantis)
+set_target_properties(mantis_bin PROPERTIES OUTPUT_NAME mantis)
+list(APPEND MANTIS_BINARY_TARGETS mantis_bin)
 
 install(TARGETS ${MANTIS_BINARY_TARGETS} DESTINATION bin)
 
@@ -177,6 +202,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/MantisConfig.cmake DESTINATION lib/cma
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/MantisConfigVersion.cmake DESTINATION lib/cmake/mantis)
 
 # install config json
-install(FILES ${PROJECT_SOURCE_DIR}/mantis-config.json DESTINATION share/mantis/)
+install(FILES ${PROJECT_SOURCE_DIR}/mantis-config.json DESTINATION $ENV{HOME}/.config/mantis)
 
 install(CODE "message(\"Mantis v${PROJECT_VERSION} successfully installed.\nPlease run 'sudo ldconfig' to update the library cache.\")")
+

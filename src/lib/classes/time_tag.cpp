@@ -14,13 +14,16 @@ double mantis::time_tag::get_frac_secs() {
 }
 
 mantis::time_tag mantis::time_tag::operator+(time_tag other) const {
-    auto frac_and_remainder = this->frac_secs + other.frac_secs;
-    auto remainder = static_cast<int64_t>(frac_and_remainder);
-
-    auto frac = frac_and_remainder - static_cast<double>(remainder);
     auto full = this->full_seconds + other.full_seconds;
 
-    return {full, frac};
+    auto frac_and_remainder = this->frac_secs + other.frac_secs;
+
+    if(frac_and_remainder >= 1.0) {
+        frac_and_remainder -= 1.0;
+        full += 1;
+    }
+
+    return {full, frac_and_remainder};
 }
 
 mantis::time_tag mantis::time_tag::operator-(time_tag other) const {
@@ -28,7 +31,7 @@ mantis::time_tag mantis::time_tag::operator-(time_tag other) const {
     int64_t full = this->full_seconds - other.full_seconds;
 
     if (frac < 0) {
-        frac = 1 - frac;
+        frac = 1 + frac; // frac is negative 
         full--;
     }
 

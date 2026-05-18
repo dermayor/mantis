@@ -16,4 +16,7 @@ namespace mantis::utils {
 
     //! pretty mantis info print
     void MANTIS_API pinfo(const std::string& message);
+
+    //! print mantis version info
+    void MANTIS_API pversion();
 }

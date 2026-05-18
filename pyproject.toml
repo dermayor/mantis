@@ -1,0 +1,17 @@
+
+[build-system]
+requires = ["scikit-build-core>=0.5", "pybind11"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "mantis"
+version = "0.0.3"
+authors = [{name = "Mayor Dermer"}]
+description = "Mantis Python bindings"
+requires-python = ">=3.12"
+readme = "README.md"
+license = {text = "MIT"}
+
+[tool.pyright]
+stubPath = "python/stubs"
+reportMissingModuleSource = "none"

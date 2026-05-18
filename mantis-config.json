@@ -15,11 +15,11 @@
   "SOCKET_TYPE": 1,
   "VIRTUAL_MSDRS": [
     {
-      "NAME": "L",
-      "TYPE": "JAMES",
+      "NAME": "mock",
+      "TYPE": "virtual",
       "TX_CHANNELS": [
         {
-          "FILENAME": "hummmmmmm",
+          "FILENAME": "test",
           "MODE": "FILE"
         }
       ],
