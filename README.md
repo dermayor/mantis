@@ -55,8 +55,8 @@ curl -fsSL https://raw.githubusercontent.com/MayorDermer/mantis/refs/heads/main/
 
 A full library install will install the "mantis" binary for your convenience.
 
-Functionality includes finding devices, tx/rx from/to a file, and transmitting a cw
-run mantis --help for more details.
+Functionality includes finding devices, tx/rx from/to a file, and transmitting a cw.
+Run ```mantis --help``` for more details.
 
 ## Examples
 
@@ -64,7 +64,7 @@ Examples in both c++ and python can be found in the examples dir
 
 ## Config File
 
-Mantis has a JSON config file, mantis-config.json which installs to /usr/local/share/mantis/
+Mantis has a JSON config file, mantis-config.json which installs to ~/.config/mantis/
 Users may define a different config file path with the MANTIS_CONFIG_FILE env var
 
 ### Options
