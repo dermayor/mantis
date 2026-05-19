@@ -5,13 +5,14 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "mantis"
-version = "0.0.3"
-authors = [{name = "Mayor Dermer"}]
+version = "0.1.0"
+authors = [{ name = "Mayor Dermer" }]
 description = "Mantis Python bindings"
 requires-python = ">=3.12"
 readme = "README.md"
-license = {text = "MIT"}
+license = { text = "MIT" }
 
 [tool.pyright]
 stubPath = "python/stubs"
 reportMissingModuleSource = "none"
+
