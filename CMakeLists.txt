@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
+if(POLICY CMP0167)
+  # Use FindBoost.cmake to find Boost libs on newer cmake versions
+  cmake_policy(SET CMP0167 NEW)
+endif()
+
 # declare project
 project(mantis VERSION 0.1.0)
 
@@ -63,7 +68,7 @@ list(APPEND SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/config.cpp)
 #####################################################################################
 
 # uhd
-find_package(UHD)
+find_package(UHD QUIET) # allow quiet fail when not installed
 if(UHD_FOUND)
   message("Compiling with UHD support")
   add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-DM_UHD=TRUE>) # ifdef uhd flag
