@@ -109,6 +109,7 @@ if(DEFINED SKBUILD) # need static linking for pip install
 else()
   add_library(mantis SHARED ${SOURCE_FILES})
 endif()
+add_library(mantis::mantis ALIAS mantis)
 
 # link libs
 target_link_libraries(mantis PUBLIC Threads::Threads
@@ -199,12 +200,9 @@ add_executable(mantis_bin ${CMAKE_CURRENT_SOURCE_DIR}/src/mantis.cpp
                           ${MANTIS_BINARIES_ADDITIONAL_SOURCES})
 
 target_link_libraries(mantis_bin PRIVATE mantis Boost::program_options)
-
 set_target_properties(mantis_bin PROPERTIES OUTPUT_NAME mantis)
 
-list(APPEND MANTIS_BINARY_TARGETS mantis_bin)
-
-install(TARGETS ${MANTIS_BINARY_TARGETS} DESTINATION bin)
+install(TARGETS mantis_bin DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 #####################################################################################
 ##                MantisConfig.cmake and MantisConfigVersion.cmake                 ##
@@ -236,5 +234,5 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/MantisConfig.cmake
 install(FILES ${PROJECT_SOURCE_DIR}/mantis-config.json
         DESTINATION $ENV{HOME}/.config/mantis)
 
-install(CODE "message(\"Mantis v${PROJECT_VERSION} successfully installed.
-              \nPlease run 'sudo ldconfig' to update the library cache.\")")
+install(CODE "message(\"Mantis v${PROJECT_VERSION} successfully installed."
+              "\nPlease run 'sudo ldconfig' to update the library cache.\")")
