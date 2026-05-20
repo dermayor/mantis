@@ -22,7 +22,7 @@ cd mantis
 $SUDO chmod +x ./scripts/install_deps.sh
 $SUDO ./scripts/install_deps.sh
 
-if [[$1 == 'python']]; then
+if [["${1}" == "python"]]; then
   pdep "pybind11"
   $SUDO apt install pybind11-dev python3-pybind11
   intall_python_flag="-DPYTHON=True"
