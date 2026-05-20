@@ -22,10 +22,6 @@ $SUDO apt-get update && $SUDO apt-get install -y \
 pdep "nlohmann_json"
 $SUDO apt-get install -y nlohmann-json3-dev
 
-# pybind11
-pdep "pybind11"
-$SUDO apt-get install -y python3-pybind11 pybind11-dev
-
 # boos po
 pdep "boost program options"
 $SUDO apt-get install -y libboost-program-options-dev

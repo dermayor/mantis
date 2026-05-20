@@ -6,11 +6,19 @@ SDR Driver Abstraction Library
 
 ### Ubuntu
 
-For full install (c++ and python) run the terminal command
+C++ install
 
 ```bash
 
-curl -fsSL https://raw.githubusercontent.com/MayorDermer/mantis/refs/heads/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/dermayor/mantis/refs/heads/main/scripts/install.sh | bash
+
+```
+
+Full install (C++ and Python) run the terminal command
+
+```bash
+
+curl -fsSL https://raw.githubusercontent.com/dermayor/mantis/refs/heads/main/scripts/install.sh | bash -s -- python
 
 ```
 

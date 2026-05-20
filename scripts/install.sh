@@ -2,6 +2,12 @@
 set -x
 set -e
 
+function pdep() {
+  echo "Instaling dependency: $1"
+}
+
+intall_python_flag="" # zero this in case system set for some reason
+
 # Use sudo only if not root
 if [ "$(id -u)" -eq 0 ]; then
   SUDO=""
@@ -16,7 +22,13 @@ cd mantis
 $SUDO chmod +x ./scripts/install_deps.sh
 $SUDO ./scripts/install_deps.sh
 
-mkdir -p build && cd build && cmake .. && $SUDO make -j $(nproc) install
+if [[$1 == 'python']]; then
+  pdep "pybind11"
+  $SUDO apt install pybind11-dev python3-pybind11
+  intall_python_flag="-DPYTHON=True"
+fi
+
+mkdir -p build && cd build && cmake .. ${intall_python_flag} && $SUDO make -j $(nproc) install
 
 echo "Cleaning up..."
 cd ../.. && rm -rf mantis
