@@ -216,7 +216,7 @@ install(TARGETS mantis_bin DESTINATION ${CMAKE_INSTALL_BINDIR})
 # mantis config
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/MantisConfig.cmake
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/MantisConfig.cmake.in
         ${CMAKE_CURRENT_BINARY_DIR}/cmake/MantisConfig.cmake
         INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/mantis)
 
