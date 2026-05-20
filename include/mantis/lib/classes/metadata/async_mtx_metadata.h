@@ -7,7 +7,7 @@
 #include <mantis/lib/errors/async_mtx_metadata_errors.h>
 #include <mantis/lib/classes/time_tag.h>
 
-#ifdef __uhd
+#ifdef M_UHD
 
 #include <uhd/usrp/multi_usrp.hpp>
 
@@ -27,7 +27,7 @@ namespace mantis::go {
 
         metadata_errors::async_mtx_metadata_error_codes code;
 
-#ifdef __uhd
+#ifdef M_UHD
 
         /**
          * @brief converts async_mtx_metadata to uhd::async_metadata_t

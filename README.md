@@ -19,7 +19,7 @@ curl -fsSL https://raw.githubusercontent.com/MayorDermer/mantis/refs/heads/main/
 1. Add support in the project's cmake
     - Find the relevant driver package
     - If the package is found:
-        - add a compile flag indicating so (example __uhd)
+        - add a compile flag indicating so (example M_UHD)
         - append the driver library to the variable MANTIS_DRIVER_LIBS var
         - append the src/driver_impl/<new_driver>/*.cpp files to the SOURCE_FILES var
         - add an install() function in the cmake that installs the include/driver_impl/<new_driver> directory to

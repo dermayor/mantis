@@ -4,7 +4,7 @@
 
 #include <mantis/lib/classes/metadata/async_mtx_metadata.h>
 
-#ifdef __uhd
+#ifdef M_UHD
 
 uhd::async_metadata_t mantis::go::async_mtx_metadata::from_async_mtx_md(async_mtx_metadata &a_mtx_md) {
     uhd::async_metadata_t to_return{};

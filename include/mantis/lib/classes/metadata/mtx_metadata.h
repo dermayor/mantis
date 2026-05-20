@@ -8,7 +8,7 @@
 #include <mantis/config.h>
 #include <mantis/lib/classes/time_tag.h>
 
-#ifdef __uhd
+#ifdef M_UHD
 
 #include <uhd/usrp/multi_usrp.hpp>
 
@@ -53,7 +53,7 @@ namespace mantis::go {
          */
         void set_time_spec(time_tag _time_spec);
 
-#ifdef __uhd
+#ifdef M_UHD
 
         //! creates uhd_md_tx from current object
         uhd::tx_metadata_t convert_to_uhd_md_tx();

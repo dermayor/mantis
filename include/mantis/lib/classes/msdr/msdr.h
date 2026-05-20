@@ -14,7 +14,7 @@
 
 #include <nlohmann/json.hpp>
 
-#ifdef __uhd
+#ifdef M_UHD
 
 #include <uhd/usrp/multi_usrp.hpp>
 

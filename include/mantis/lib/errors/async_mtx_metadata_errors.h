@@ -7,7 +7,7 @@
 #include <mantis/config.h>
 #include <unordered_map>
 
-#ifdef __uhd
+#ifdef M_UHD
 
 #include <uhd/usrp/multi_usrp.hpp>
 

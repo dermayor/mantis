@@ -6,7 +6,7 @@
 #include "mantis/driver_impl/virtual/utilities/virtual_utils.h"
 #include <mantis/lib/errors/exceptions.h>
 
-#ifdef __uhd
+#ifdef M_UHD
 
 #include <utility>
 

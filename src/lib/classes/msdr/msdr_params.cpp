@@ -92,7 +92,7 @@ mantis::params::msdr_params::from_str(const std::string &args, params::msdr_para
     return errors::error_code::SUCCESS;
 }
 
-#ifdef __uhd
+#ifdef M_UHD
 
 mantis::params::msdr_params
 mantis::params::msdr_params::from_uhd_device_addr(uhd::device_addr_t address, const msdr_params &original) {

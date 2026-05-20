@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 project(mantis VERSION 0.1.0)
 
 # generate version config an supported drivers list
-configure_file(cmake_templates/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/version.h)
+configure_file(cmake_templates/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/mantis/version.h)
 
 # CXX standard
 set(CMAKE_CXX_STANDARD 20)
@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD 20)
 #####################################################################################
 ##                                 Compiler Flags                                  ##
 #####################################################################################
+
 # add warnings as errors and all warnings
 add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Werror>
         $<$<COMPILE_LANGUAGE:CXX>:-Wall>)
@@ -28,7 +29,7 @@ add_compile_options(
         $<$<COMPILE_LANGUAGE:CXX>:-mtune=native>)
 
 # Set the default build type to release
-if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
   set(CMAKE_BUILD_TYPE "Release")
   message(STATUS "Build type not specified: defaulting to release.")
 endif()
@@ -40,23 +41,20 @@ find_package(Threads REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
 
-if(NOT NO_PYTHON)
+if(PYTHON OR DEFINED SKBUILD) # python on request or pip install
   find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
   set(PYBIND11_FINDPYTHON ON)
   find_package(pybind11 CONFIG REQUIRED)
   message(STATUS "pybind11 found, enabling PyMantis")
   set(PyMantisEnabled TRUE)
-  add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-D__pymantis=TRUE>) # ifdef pymantis flag
-
-else()
-  message(STATUS "NO_PYTHON option detected, skipping PyMantis setup")
+  add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-DM_PYMANTIS=TRUE>) # ifdef pymantis flag
 endif()
 
 # supported driver list for perror messaging
 set(MANTIS_SUPPORTED_DRIVERS "UHD")
 
 # get all mantis files EXCEPT Driver specific ones
-FILE(GLOB_RECURSE SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/*.cpp)
+file(GLOB_RECURSE SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/*.cpp)
 list(APPEND SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/config.cpp)
 
 #####################################################################################
@@ -65,12 +63,12 @@ list(APPEND SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/config.cpp)
 
 # uhd
 find_package(UHD)
-if (UHD_FOUND)
+if(UHD_FOUND)
   message("Compiling with UHD support")
-  add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-D__uhd=TRUE>) # ifdef uhd flag
+  add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-DM_UHD=TRUE>) # ifdef uhd flag
   list(APPEND MANTIS_DRIVER_LIBS uhd) # update libs var
 
-  FILE(GLOB_RECURSE MANTIS_UHD_SOURCE_FILES src/driver_impl/uhd/*.cpp) # add include uhd source files
+  file(GLOB_RECURSE MANTIS_UHD_SOURCE_FILES src/driver_impl/uhd/*.cpp) # add include uhd source files
   list(APPEND SOURCE_FILES ${MANTIS_UHD_SOURCE_FILES})
   if(NOT DEFINED SKBUILD)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/driver_impl/uhd DESTINATION include/mantis/driver_impl/) # install mantis uhd impl includes
@@ -80,7 +78,7 @@ else()
 endif()
 
 # add the "virtual" driver
-FILE(GLOB_RECURSE MANTIS_VIRTUAL_SOURCE_FILES src/driver_impl/virtual/*.cpp) # add include virtual source files
+file(GLOB_RECURSE MANTIS_VIRTUAL_SOURCE_FILES src/driver_impl/virtual/*.cpp) # add include virtual source files
 list(APPEND SOURCE_FILES ${MANTIS_VIRTUAL_SOURCE_FILES})
 
 # install virtual msdr includes
@@ -89,12 +87,12 @@ if(NOT DEFINED SKBUILD)
 endif()
 
 # make sure we found at least one driver library
-if ("${MANTIS_DRIVER_LIBS}" STREQUAL "")
+if("${MANTIS_DRIVER_LIBS}" STREQUAL "")
   message(WARNING "[Warning] No supported drivers found.\nSupported drivers are: ${MANTIS_SUPPORTED_DRIVERS}\nCompiling with virtual functionality only")
-endif ()
+endif()
 
 # generate build_info file
-configure_file(cmake_templates/build_info.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/mantis/build_info.h)
+configure_file(cmake_templates/build_info.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/mantis/build_info.h)
 
 #####################################################################################
 ##                                   main library                                  ##
@@ -113,6 +111,7 @@ target_link_libraries(mantis PUBLIC Threads::Threads nlohmann_json::nlohmann_jso
 # include dirs
 target_include_directories(mantis PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
@@ -187,22 +186,21 @@ install(TARGETS ${MANTIS_BINARY_TARGETS} DESTINATION bin)
 # mantis config
 include(CMakePackageConfigHelpers)
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/MantisConfig.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/MantisConfig.cmake
-        INSTALL_DESTINATION lib/cmake/mantis)
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake/MantisConfig.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/mantis)
 
 # version config
-write_basic_package_version_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/MantisConfigVersion.cmake
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/cmake/MantisConfigVersion.cmake
         VERSION ${PROJECT_VERSION} COMPATIBILITY SameMinorVersion)
 
 
 #####################################################################################
 ##                               .cmake installations                              ##
 #####################################################################################
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/MantisConfig.cmake DESTINATION lib/cmake/mantis)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/MantisConfigVersion.cmake DESTINATION lib/cmake/mantis)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/MantisConfig.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/mantis)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/MantisConfigVersion.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/mantis)
 
 # install config json
 install(FILES ${PROJECT_SOURCE_DIR}/mantis-config.json DESTINATION $ENV{HOME}/.config/mantis)
 
 install(CODE "message(\"Mantis v${PROJECT_VERSION} successfully installed.\nPlease run 'sudo ldconfig' to update the library cache.\")")
-

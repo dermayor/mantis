@@ -12,7 +12,7 @@
 
 #include <nlohmann/json.hpp>
 
-#ifdef __uhd
+#ifdef M_UHD
 
 #include "mantis/driver_impl/uhd/interface_impl/uhd_device_finder.h"
 
@@ -20,7 +20,7 @@
 
 #include "mantis/driver_impl/virtual/interface_impl/virtual_device_finder.h"
 
-#ifdef __pymantis
+#ifdef M_PYMANTIS
 
 #include <csignal>
 
@@ -32,7 +32,7 @@ mantis::device_manager& mantis::device_manager::get_instance() {
 }
 
 mantis::device_manager::device_manager() {
-#ifdef __pymantis
+#ifdef M_PYMANTIS
     std::signal(SIGINT, [](int sig) {
         std::exit(128 + sig);
     }); // needed this because otherwise pybind11 may not exit a while(true) cpp loop
@@ -133,7 +133,7 @@ mantis::errors::error_code mantis::device_manager::init_internal(int num, std::v
 
     int needed_sdrs{num};
     // before we init we need the total number of found devices
-#ifdef __uhd
+#ifdef M_UHD
     int uhd_sdrs = driver_impl::uhd_i::uhd_device_finder::get_num_connected_unused(msdr_params);
 
     if (uhd_sdrs > needed_sdrs) { // only init what we need
@@ -149,7 +149,7 @@ mantis::errors::error_code mantis::device_manager::init_internal(int num, std::v
         return errors::error_code::INSUFFICIENT_SDRS_FOUND;
     }
 
-#ifdef __uhd
+#ifdef M_UHD
     if (!config::FORCE_VIRTUAL) {
         auto err = driver_impl::uhd_i::uhd_device_finder::init(uhd_sdrs, o_found_sdrs, msdr_params);
         if (!errors::succeeded(err) && !config::ALLOW_VIRTUAL)
@@ -169,7 +169,7 @@ mantis::errors::error_code mantis::device_manager::init_internal(int num, std::v
 }
 
 mantis::errors::error_code mantis::device_manager::init_all(params::msdr_params msdr_params) {
-#ifdef __uhd
+#ifdef M_UHD
     auto err = driver_impl::uhd_i::uhd_device_finder::init(0, this->connected_sdrs, std::move(msdr_params));
     if (!errors::succeeded<errors::error_code::NO_SDRS_CONNECTED>(err)) {
         return err;
@@ -277,7 +277,7 @@ mantis::device_manager::get_rx_channel(const params::msdr_params& msdr_params, s
 std::vector<mantis::params::msdr_params> mantis::device_manager::find(params::msdr_params params) {
     std::vector<params::msdr_params> found_devices{};
 
-#ifdef __uhd
+#ifdef M_UHD
     std::string args_str = params.get_find_args();
     auto found_uhd_devices = uhd::device::find(args_str);
     for (const auto& device : found_uhd_devices) {

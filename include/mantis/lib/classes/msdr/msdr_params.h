@@ -8,7 +8,7 @@
 
 #include <mantis/config.h>
 
-#ifdef __uhd
+#ifdef M_UHD
 
 #include <uhd/usrp/multi_usrp.hpp>
 
@@ -79,7 +79,7 @@ namespace mantis::params {
         [[nodiscard]] static bool compare(const msdr_params &specific, const msdr_params &generic);
 
 
-#ifdef __uhd
+#ifdef M_UHD
 
         /**
          * @brief Forms a msdr_params struct from a uhd::device_addr_t address and

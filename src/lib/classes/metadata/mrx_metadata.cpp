@@ -4,7 +4,7 @@
 
 #include "mantis/lib/classes/metadata/mrx_metadata.h"
 
-#ifdef __uhd
+#ifdef M_UHD
 
 uhd::rx_metadata_t mantis::go::mrx_metadata::convert_to_uhd_md_rx() {
     uhd::rx_metadata_t md_rx;

@@ -9,7 +9,7 @@
 #include <mantis/lib/classes/time_tag.h>
 #include <mantis/lib/errors/mrx_metadata_errors.h>
 
-#ifdef __uhd
+#ifdef M_UHD
 
 #include <uhd/usrp/multi_usrp.hpp>
 
@@ -63,7 +63,7 @@ namespace mantis::go {
          */
         mantis::metadata_errors::mrx_metadata_error_codes code;
 
-#ifdef __uhd
+#ifdef M_UHD
 
         uhd::rx_metadata_t convert_to_uhd_md_rx();
 

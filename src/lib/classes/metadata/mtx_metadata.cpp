@@ -4,7 +4,7 @@
 
 #include "mantis/lib/classes/metadata/mtx_metadata.h"
 
-#ifdef __uhd
+#ifdef M_UHD
 
 uhd::tx_metadata_t mantis::go::mtx_metadata::convert_to_uhd_md_tx() {
     uhd::tx_metadata_t md_tx;
